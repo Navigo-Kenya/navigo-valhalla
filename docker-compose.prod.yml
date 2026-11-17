@@ -1,0 +1,28 @@
+services:
+  # ── Valhalla (car routing, isochrones) ────────────────────────────────────
+  # First start builds routing tiles from data/*.osm.pbf (~20 min for Kenya),
+  # later starts reuse them. Serves on :8002 inside navigo_net.
+  valhalla:
+    image: ghcr.io/valhalla/valhalla-scripted:3.9.1
+    container_name: navigo-valhalla
+    ports:
+      - "127.0.0.1:8002:8002"
+    environment:
+      - use_tiles_ignore_pbf=True
+      - force_rebuild=False
+      - build_admins=True
+      - build_time_zones=True
+      - build_elevation=False
+      - build_transit=False
+      - serve_tiles=True
+      - server_threads=4
+    volumes:
+      - /var/valhalla/data:/custom_files
+    restart: unless-stopped
+    networks:
+      - navigo_net
+
+networks:
+  navigo_net:
+    name: navigo_net
+    external: true
