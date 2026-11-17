@@ -1,0 +1,7 @@
+# Routing data and built tiles: downloaded / generated, never versioned
+data/
+*.osm.pbf
+*.tar
+.env
+.DS_Store
+Thumbs.db
