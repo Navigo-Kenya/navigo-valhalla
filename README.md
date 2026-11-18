@@ -51,7 +51,7 @@ OpenTripPlanner is excellent at public transport and good at walking and cycling
 
 Keeping Valhalla in its own repository means:
 
-- **Independent lifecycles:** an OTP graph rebuild (16 min, 6 GB) never takes car routing down, and vice versa.
+- **Independent lifecycles:** an OTP graph rebuild (10–20 min, up to 12 GB) never takes car routing down, and vice versa.
 - **Independent scaling:** Valhalla is light (≈ 75 MB at rest); it can move to a small machine or run several replicas without touching OTP.
 - **A clean contract:** navigo-api talks to each engine over HTTP on the shared `navigo_net` network, nothing else is shared but the OSM extract.
 
@@ -300,7 +300,7 @@ The **Nairobi Expressway** (JKIA ↔ James Gichuru Road) is a toll road, but in 
 | `build_elevation` | `False` | Elevation for walking and cycling lives in OTP; cars don't need it |
 | `build_transit` | `False` | Transit is OTP's job |
 | `serve_tiles` | `True` | Start the HTTP server after building |
-| `server_threads` | `2` local · `4` prod | Concurrent request workers |
+| `server_threads` | `2` local · `8` prod (`VALHALLA_SERVER_THREADS`) | Concurrent request workers |
 
 The generated `data/valhalla.json` holds the full Valhalla config (costing defaults, limits). Edit it only for advanced tuning; it's regenerated on a forced rebuild.
 
@@ -354,7 +354,7 @@ While tiles rebuild (≈ 25 min), car journeys fall back to OTP automatically.
 
 ## Production deployment
 
-Navigo runs on a single Hetzner host alongside `navigo-api` and `navigo-otp`.
+Navigo runs on a single OVH host (32 GB RAM) alongside `navigo-api` and `navigo-otp`; the shared memory budget is in navigo-api's `DEPLOYMENT.md` §2.
 
 ```bash
 # On the host
@@ -372,7 +372,7 @@ Then set `VALHALLA_URL=http://navigo-valhalla:8002` in the API's production env 
 |---|---|
 | **Exposure** | Port 8002 binds to `127.0.0.1` only. The API reaches Valhalla over `navigo_net`; nothing is public. |
 | **Data** | Lives in `/var/valhalla/data` (`docker-compose.prod.yml`), outside the checkout. |
-| **Memory** | Keep ~3 GB free for rebuilds; serving needs very little. |
+| **Memory** | Serving needs very little (≈ 75 MB; tiles are memory-mapped). A tile rebuild needs ~3 GB free: on the 32 GB host that is there even during an OTP graph build. |
 | **Restarts** | `restart: unless-stopped`: comes back after a reboot with its tiles. |
 
 ---

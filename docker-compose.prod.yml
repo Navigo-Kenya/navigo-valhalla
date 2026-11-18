@@ -15,7 +15,9 @@ services:
       - build_elevation=False
       - build_transit=False
       - serve_tiles=True
-      - server_threads=4
+      # Request workers; 8 suits the 32 GB OVH server. Set VALHALLA_SERVER_THREADS
+      # in this folder's .env to change it (about one per CPU thread to spare).
+      - server_threads=${VALHALLA_SERVER_THREADS:-8}
     volumes:
       - /var/valhalla/data:/custom_files
     restart: unless-stopped
